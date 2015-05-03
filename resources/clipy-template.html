@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=no; minimum-scale=1.0; maximum-scale=1.0;" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="robots" content="noindex"/>
+    <link rel="icon" href="/images/favicon.png"/>
+    <style type="text/css">
+        body {
+            width: 350px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            margin: 0px auto 0px auto;
+            -webkit-text-size-adjust: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            color: #555;
+            background-color: #f4f4f4;
+        }
+
+        img {
+            width: 100%;
+        }
+
+        body.ipad {
+            width: 400px;
+            font-size: 18px;
+        }
+
+        .ipad .iphone_only { display: none; }
+        .iphone .ipad_only { display: none; }
+
+        #content {
+            background-color: #f4f4f4;
+            padding: 15px;
+            /*border: 5px solid #ddd;*/
+            -webkit-border-radius: 20px;
+        }
+
+        .iphone #content {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .ipad   #content { margin-top: 140px; }
+
+        #content>:first-child { margin-top: 0; padding-top: 0; }
+        #content>:last-child { margin-bottom: 0; padding-bottom: 0; }
+
+        h1 { font-size: 2em; color: #ccc; margin-top: 0; padding-top: 0; }
+        ul { padding-left: 18px; }
+        li { margin-top: 0.5em; margin-bottom: 0.5em; }
+
+        @media only screen and (orientation:landscape) {
+            body.iphone { width: 440px; font-size: 13px; }
+            .iphone #content { margin-top: 10px; }
+        }
+
+        body.darkmode {
+            background-color: #111;
+        }
+
+        .darkmode #content {
+            background-color: #222;
+            border-color: #555;
+            color: #aaa;
+        }
+    </style>
+</head>
+<!--<body class="%DEVICECLASS%" onload="document.ontouchmove = function(e){ e.preventDefault(); };">-->
+<body class="%DEVICECLASS%">
+<div id="content">
+    %BODY%
+</div>
+</body>
+</html>

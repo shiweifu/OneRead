@@ -1,0 +1,2 @@
+class TestController < UIViewController
+end
