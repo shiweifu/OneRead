@@ -1,7 +1,7 @@
 class Http
 
   def get(url, params, &callback)
-    AFMotion::JSON.get(url, params=params) do |result|
+    AFMotion::HTTP.get(url, params=params) do |result|
       callback.call(result.object)
     end
   end
@@ -11,6 +11,13 @@ class Http
       callback.call(result.object)
     end
   end
+
+  def get_url(url)
+    puts("-------get url:", url)
+    u = NSURL.alloc.initWithString(url)
+    NSString.stringWithContentsOfURL(u)
+  end
+
 
   # def get(url, params, &callback)
   #

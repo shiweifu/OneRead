@@ -2,12 +2,22 @@
 $:.unshift("/Library/RubyMotion/lib")
 require 'motion/project/template/ios'
 require 'bubble-wrap/all'
+# require 'sugarcube'
+# require 'sugarcube-nsdate'
+require 'sugarcube-all'
+require 'sugarcube-repl'
 require 'motion-cocoapods'
 require 'afmotion'
 
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = 'OneRead'
+#  app.libs += %w(/usr/lib/libxml2.2.dylib)
+
+  app.identifier = 'me.lonelygod.oneread'
+  app.provisioning_profile = '/Users/shiweifu/oneread.mobileprovision'
+  app.codesign_certificate = 'iPhone Developer: Weifu Shi (JRXWYDYYSD)'
+                              
 
   app.pods do
     pod 'STHTTPRequest'
@@ -16,9 +26,8 @@ Motion::Project::App.setup do |app|
     pod 'SSDataSources'
     pod 'SWRevealViewController'
     pod 'HHRouter'
-    pod 'SSDataSources'
     pod 'SVProgressHUD'
-    pod 'IGHTMLQuery'
+    pod 'openshare'
   end
 
 end

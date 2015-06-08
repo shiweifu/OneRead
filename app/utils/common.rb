@@ -19,15 +19,26 @@ module Common
     name, ext =  filename.split(".")
 
     path = NSBundle.mainBundle.pathForResource(name, ofType: ext)
+
+    puts("path:", path)
+
+
     string = NSString.stringWithContentsOfFile(path,
                                                encoding: NSUTF8StringEncoding,
                                                error: nil)
   end
 
-  def parse_html(html, selector)
-    doc = IGHTMLDocument alloc.initWithXMLString(html, error:nil)
-    content = doc.queryWithXPath(selector).firstObject
-    content.html
+  def date_to_str(d)
+    d.string_with_format('yyyyMMdd', options={:unicode => true})
+  end
+end
+
+
+class UIImageView
+
+  def set_image_url(url, placeholder_image=nil)
+    placeholder_image = 'placeholder'.uiimage unless placeholder_image.is_a? UIImage
+    self.sd_setImageWithURL(url.nsurl, placeholderImage: placeholder_image)
   end
 
 end

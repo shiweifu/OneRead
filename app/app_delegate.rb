@@ -1,12 +1,13 @@
 include PureLayoutMotion
+include Router
 
 class AppDelegate
-  attr_accessor :revealController
+  attr_accessor :revealController, :sf_c, :zhihu_c, :hn_c
 
   def application(application, didFinishLaunchingWithOptions:launchOptions)
-    listController = ListController.alloc.init
-    listController.title = '一读'
-    listController.type  = :sf
+    init_router
+
+    listController = self.sf_c
     listController.view.backgroundColor = UIColor.whiteColor
     nav = UINavigationController.alloc.initWithRootViewController(listController)
 
@@ -14,27 +15,82 @@ class AppDelegate
 
     @revealController = SWRevealViewController.alloc.initWithRearViewController(menu_controller,frontViewController:nav)
 
-    @revealController.rearViewRevealWidth = 120
+    @revealController.rearViewRevealWidth = 150 
     @revealController.rearViewRevealOverdraw = 0
-    @revealController.frontViewShadowRadius = 0
+    @revealController.frontViewShadowRadius = 3
 
     @window = UIWindow.alloc.initWithFrame(UIScreen.mainScreen.bounds)
     @window.rootViewController = @revealController
     @window.makeKeyAndVisible
+
     true
   end
+
+  def init_router
+    register_router("/list") do | params |
+      list = ListController.alloc.init
+      list.params = params
+      list
+    end
+
+    register_router("/read") do | params |
+      rc = ReadController.alloc.init
+      rc.params = params
+      rc 
+    end
+
+  end
+
+  def hn_c
+    unless @hn_c
+      @hn_c = list_controller = find_router("/list?title=HackerNews&type=hn", {})
+    end
+    @hn_c
+  end
+
+  def sf_c
+    unless @sf_c
+      @sf_c = list_controller = find_router("/list", {"title"=>"", "type"=>:sf})
+    end
+    @sf_c
+  end
+
+  def zhihu_c
+    unless @zhihu_c
+      @zhihu_c = list_controller = find_router("/list", {"title" => "倁乎ㄖ蕔", "type" => :zhihu})
+    end
+    @zhihu_c
+  end
+
 end
 
 class MenuController < UITableViewController
   TOP_CELL_HEIGHT = 64.0
-  ITEMS = ["堆栈科技", "简鸡汤书", "道路探索者", "中国测试", "", "登录"]
+  ITEMS = [" ", "SegmentFault", "知乎日报", "HackerNews", "待读", "历史",  "", "设置"]
 
   def viewDidLoad
     @dataSource = SSArrayDataSource.alloc.initWithItems(ITEMS)
 
-    @dataSource.cellConfigureBlock = lambda do |cell, s, parentview, indexpath|
-      cell.textLabel.text = s
+    @dataSource.cellConfigureBlock = lambda do | cell, s, parentview, indexPath |
+      if indexPath.row == 0
+        iv = UIImageView.newAutoLayoutView
+        cell.contentView.addSubview(iv)
+        iv.pin_to_superview
+        iv.image = "header".uiimage
+      else
+        cell.textLabel.text = s
+      end
     end
+
+    # @dataSource.cellCreationBlock  = lambda do | obj, pv, ip |
+
+    #   cell = UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier: "menu_item")
+
+
+
+    # end
+
+
     view.dataSource = @dataSource
   end
 
@@ -48,9 +104,9 @@ class MenuController < UITableViewController
 
     item = ITEMS[indexPath.row]
 
-    if item.isEqualToString("")
+    if item.isEqualToString("") 
       screen_height = App.frame.size.height
-      other_hight_sum = TOP_CELL_HEIGHT + (ITEMS.count-2) * 44.0
+      other_hight_sum = TOP_CELL_HEIGHT + (ITEMS.count-2) * 44.0 - 20
       result = [screen_height - other_hight_sum, 0].max
     end
 
@@ -58,37 +114,16 @@ class MenuController < UITableViewController
   end
 
   def tableView(tv, didSelectRowAtIndexPath: indexPath)
-
-    sf_proc = lambda do 
-      puts "sf"
+    sd = App.shared.delegate
+    list_controller = nil
+    if indexPath.row == 1
+      list_controller = sd.sf_c
+    elsif indexPath.row == 2
+      list_controller = sd.zhihu_c
     end
 
-    js_proc = lambda do
-      puts "jianshu"
-    end
-
-    v2_proc = lambda do 
-      puts "v2ex"
-    end
-
-    cb_proc = lambda do
-      puts "cb"
-      list_controller = ListController.alloc.init
-      list_controller.title = "cnbeta"
-      list_controller.type  = :cnbeta
-      nav = UINavigationController.alloc.initWithRootViewController(list_controller)
-      sd = App.shared.delegate
-      sd.revealController.frontViewController = nav
-      self.revealViewController.revealToggle(nil)
-    end
-
-    event_table = {0 => sf_proc, 1 => js_proc, 2 => v2_proc, 3 => cb_proc}
-
-    p = event_table[indexPath.row]
-    p.call if p
-
-    puts ITEMS[indexPath.row]
-
-
+    nav = UINavigationController.alloc.initWithRootViewController(list_controller)
+    sd.revealController.frontViewController = nav
+    self.revealViewController.revealToggle(nil)
   end
 end

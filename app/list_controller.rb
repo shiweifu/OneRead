@@ -1,122 +1,153 @@
 class ListController < UITableViewController
   include Common
-
-  attr_accessor :type, :data_source
+  include Router
 
   def viewDidLoad
     @client = Http.new
     @items = []
     view.registerClass(UITableViewCell, forCellReuseIdentifier: 'item_cell')
 
-    revealController = self.revealViewController
-    menu_bar_item = UIBarButtonItem.alloc.initWithTitle("三", style: UIBarButtonItemStylePlain, target: revealController, action: 'revealToggle:')
-    self.navigationItem.leftBarButtonItem = menu_bar_item
+    setup_nav_bar_items
 
     load_data
+
+    self.title = self.title_text
+
+    @page = 1
+  end
+
+  def setup_nav_bar_items
+
+    menu_bar_item = UIBarButtonItem.alloc.initWithImage(UIImage.imageNamed("menu"), style:UIBarButtonItemStylePlain, target:self.revealViewController, action:'revealToggle:')
+    self.navigationItem.leftBarButtonItem = menu_bar_item
+
+
+    bar_button_items = []
+
+    bar_button_items.addObject(UIBarButtonItem.alloc.initWithImage(UIImage.imageNamed("refresh"), style:UIBarButtonItemStylePlain, target:self, action:'refresh:'))
+    bar_button_items.addObject(UIBarButtonItem.alloc.initWithImage(UIImage.imageNamed("back"), style:UIBarButtonItemStylePlain, target:self, action:'back:'))
+    bar_button_items.addObject(UIBarButtonItem.alloc.initWithImage(UIImage.imageNamed("next"), style:UIBarButtonItemStylePlain, target:self, action:'next:'))
+    self.navigationItem.rightBarButtonItems = bar_button_items
+  end
+
+  def url
+    case self.type
+      when :sf
+        url = Config::SF_URL + "?page=#{@page}"
+      when :zhihu
+        now = NSDate.new
+        if(@page.to_i == 1)
+          url = Config::ZHIHU_LATEST_URL
+        else
+          url = Config::ZHIHU_URL + date_to_str((@page.to_i-1).days.before(now))
+        end
+
+      else
+        url = ""
+    end    
+    url
   end
 
   def load_data
     msg("正在加载")
-
-    case @type
-      when :sf
-        url = Config::SF_URL
-      when :cnbeta
-        url = Config::CB_URL
-      when :jianshu
-        url = Config::JIANSHU_URL
-      when :v2ex
-        url = Config::V2EX_URL
-      else
-        url = ""
-    end
-
-    puts("data url:" + url)
-    if @type == :sf
-      @client.get_json(url, params: {}) do |json|
+    url = self.url
+    puts("data url:" + self.url)
+    if self.type == :sf
+      puts("正要加载sf的数据")
+      @client.get_json(self.url, params: {}) do |json|
         p json.to_s
+        hide_msg
         if json.nil?
           App.alert('网络链接不正常')
         else
-          @items = json["data"]["rows"]
-          @items = @items.map { |i|
+          items = json["data"]["rows"]
+          @items = items.map { |i|
             p "-----item:  %@\n" % i.to_s
 
             it = Item.new(i)
             it
           }
 
-          hide_msg
-          view.reloadData
+          @data_source = SSArrayDataSource.alloc.initWithItems(@items)
+          @data_source.tableView = self.tableView
+          @data_source.cellClass = ItemCell
+          @data_source.cellConfigureBlock = lambda { |cell, object, parent_view, index_path|
+            cell.model = object
+          }
+
+          self.tableView.reloadData
         end
       end
-    elsif @type == :v2ex
-    elsif @type == :cnbeta
-      feed_parser = BW::RSSParser.new(url)
-      # feed_parser.delegate = self
-      feed_parser.parse do |item|
-        p item.title
-        json = {}
-        json[:title] = item.title
-        json[:link]  = item.link
-        json[:created_date] = item.pubDate
-        json[:excerpt] = item.description
+    elsif self.type == :zhihu
+      @client.get_json(self.url, params: {}) do | json|
+        hide_msg
+        if json.nil?
+          App.alert('网络链接不正常')
+        else
+          items = json["stories"]
+          @items = items.map { |i|
+            p "-----item:  %@\n" % i.to_s
+            it = Item.new({:id => i["id"], :title => i["title"], :images => i["images"]})
+            it
+          }
 
-        it = Item.new(json)
-        @items.addObject(it)
-        puts @items.count
+          @data_source = SSArrayDataSource.alloc.initWithItems(@items)
+          @data_source.tableView = self.tableView
+          @data_source.cellClass = ZhihuItemCell
+          @data_source.cellConfigureBlock = lambda { |cell, object, parent_view, index_path|
+            cell.model = object
+          }
+
+          @data_source.tableActionBlock = lambda {|at, pv, ip| false }
+          self.tableView.reloadData
+        end
       end
     end
   end
 
-  def tableView(tableView, numberOfRowsInSection: section)
-    @items.count
-  end
-
-  def tableView(tableView, cellForRowAtIndexPath: indexPath)
-    cell = tableView.dequeueReusableCellWithIdentifier("item_cell", forIndexPath: indexPath)
-    cell = UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier: "item_cell") unless cell
-    item = @items[indexPath.row]
-    puts item.name
-
-
-    cell.textLabel.text = item.name
-    cell
-  end
-
-
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
-
-    types = [:sf, :jianshu, :v2ex, :cnbeta]
-
-    type = :sf
-    if indexPath.row <= 3
-      type = types[indexPath.row]
-    end
-
-    tableView.deselectRowAtIndexPath(indexPath, animated:true)
-    rc = ReadController.alloc.init
-    rc.type = type
-    item = @items[indexPath.row]
-    rc.model = item
-
+    type = self.type
+    model = @data_source.itemAtIndexPath(indexPath)
+    model_id = model.id
+    rc = find_router("/read", {"title" => model.name, "type" => type, "model_id" => model_id.to_s})
+    print("rc: ", rc)
     self.navigationController.pushViewController(rc, animated:true)
   end
+
+  def tableView(tableView, heightForRowAtIndexPath:indexPath)
+    result = 44
+    if self.type == :sf
+      result = ItemCell.height_for_model(nil)
+    elsif self.type == :zhihu
+      result = ZhihuItemCell.height_for_model(nil)
+    end
+    result
+  end
+
+  def title_text
+    self.params["title"]
+  end
+
+  def type
+    self.params["type"]
+  end
+
+  def refresh(sender)
+    print("refresh")
+    @page = 1
+    load_data
+  end
+
+  def back(sender)
+    print("back")
+    @page -= 1
+    refresh(nil) if @page <= 0
+    load_data
+  end
+
+  def next(sender)
+    print("next")
+    @page += 1
+    load_data
+  end
 end
-
-def when_parser_is_done
-  puts "reload"
-  puts @items
-  view.reloadData
-  hide_msg
-end
-
-def when_parser_initializes
-  p "The parser is ready!"
-end
-
-def when_parser_parses
-  p "The parser started parsing the document"
-end
-
-

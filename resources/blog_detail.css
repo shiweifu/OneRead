@@ -1,0 +1,116 @@
+html {
+    font-family: HelveticaNeue-Medium;
+    word-break: break-word;
+    line-height: 1.4;
+}
+a {
+    text-decoration: none;
+    color: #009A61;
+}
+.article-meta {
+    background-color: #F3F3F3;
+    padding: 0.6em 1em;
+}
+.article-meta h1 {
+    font-size: 1.2em;
+    line-height: 1.5em;
+    margin: 0 0 10px;
+}
+.article-meta .avatar {
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+.article-meta-info {
+    font-size: 0.9em;
+    margin: 0;
+    vertical-align: middle;
+    line-height: 32px;
+}
+.text-muted {
+    color: #999999;
+}
+.article-text {
+    font-size: 1em;
+    padding: 0.9em;
+    line-height: 1.4em;
+    color: #333333;
+    margin: 0;
+}
+.article-tags {
+    padding-left: 1em;
+}
+.article-tags .tag {
+    display: inline-block;
+    background: #E7F2ED;
+    font-family: HelveticaNeue;
+    color: #017E66;
+    font-size: 0.8em;
+    padding: 0.2em 0.5em;
+}
+.article-author {
+    font-size: 0.9em;
+    margin-left: 1em;
+    border-top: 2px solid #C8C7CC;
+}
+blockquote {
+    color: #777;
+    margin-left: 0;
+    padding-left: 1em;
+    border-left: 5px solid #D8D8D8;
+    font-size: 0.9em;
+}
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    background: #F7F7F7;
+    border: 1px solid #C8C7CC;
+    vertical-align: middle;
+    padding: 0.6em 0;
+}
+footer .icon {
+    height: 18px;
+    width: 18px;
+    vertical-align: sub;
+    display: inline-block;
+    background-repeat: no-repeat;
+    margin-right: 5px;
+}
+.icon.like {
+    background: url('votes.png');
+    background-size: 18px 18px;
+}
+.icon.bookmark {
+    background: url('bookmark.png');
+    background-size: 18px 18px;
+}
+.icon.comment {
+    background: url('comment.png');
+    background-size: 18px 18px;
+}
+.blog-menu.active {
+    color: #009A61;
+}
+.blog-menu.active .icon.like {
+    background-image: url('votes_active.png');
+}
+.blog-menu.active .icon.bookmark {
+    background-image: url('bookmark_active.png');
+}
+.blog-menu.active .icon.comment {
+    background-image: url('comment_active.png');
+}
+footer a {
+    width: 30%;
+    display: inline-block;
+    color: #888888;
+    font-size: 0.8em;
+}
+
+a {
+  text-decoration: none;
+}
+
+
